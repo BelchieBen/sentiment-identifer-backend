@@ -2,6 +2,6 @@ from django.urls import path
 from . views import *
 
 urlpatterns = [
-    path('', GetSentiment),
+    path('analyse', GetSentiment),
     path('tweet/search', SearchForTweets)
 ]

@@ -13,8 +13,7 @@ from textblob import TextBlob
 
 @api_view(['POST'])
 def GetSentiment(request):
-    print(request.data)
-    try:
+    #try:
         data_to_analyse = request.data
 
         for i in data_to_analyse["data"]:
@@ -23,9 +22,11 @@ def GetSentiment(request):
             subjectivity = round(TextBlob(textToAnalyse).subjectivity, 1)
             i["sentiment"] = sentiment
             i["subjectivity"] = subjectivity
+            i['sentiment_label'] = categorizeSentiment(sentiment)
+            i['subjectivity_label'] = categorizeSubjectivity(subjectivity)
         return Response(data_to_analyse)
-    except:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+    # except:
+    #     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def SearchForTweets(request):
@@ -48,7 +49,7 @@ def SearchForTweets(request):
         for tweet in tweepy.Cursor(api.search, q=searchWord+' -filter:retweets',lang="en", tweet_mode='extended').items(numberOfTweets):
             full_text_tweet = tweet.full_text
             clean_tweet= removeEmoji(full_text_tweet)
-            convert_tweet = {"tweet_text":clean_tweet, "posted_at":tweet.created_at}
+            convert_tweet = {"text":clean_tweet, "posted_at":tweet.created_at, "id":tweet.id}
             tweet_data.append(convert_tweet)
         return Response(tweet_data)
     except:
