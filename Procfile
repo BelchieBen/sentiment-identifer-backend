@@ -1,1 +1,1 @@
-web: gunicorn new_todo.wsgi
+web: gunicorn SentimentIdentiferBackend.wsgi
