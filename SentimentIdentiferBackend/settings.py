@@ -26,8 +26,8 @@ SECRET_KEY = 'django-insecure-ffvx+gzhc6m#n==!(2&+!#-thzd!$g%2v_0en2rs+i&6dko21y
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['http://localhost:8000','http://localhost:3500','http://localhost:3000', 'localhost']
-CORS_ALLOWED_ORIGINS = ['http://localhost:8000','http://localhost:3500','http://localhost:3000', 'localhost']
+ALLOWED_HOSTS = ['http://localhost:8000','http://localhost:3500','http://localhost:3000', 'localhost', 'https://sentiment-identifier-backend.herokuapp.com/']
+CORS_ALLOWED_ORIGINS = ['http://localhost:8000','http://localhost:3500','http://localhost:3000', 'localhost','https://sentiment-identifier-backend.herokuapp.com/']
 
 
 # Application definition
