@@ -8,7 +8,15 @@ from rest_framework import generics
 from rest_framework.authtoken import views as auth_views
 from rest_framework.compat import coreapi, coreschema
 from rest_framework.schemas import ManualSchema
+from rest_framework.decorators import api_view
 
+@api_view(['GET'])
+def FindUser(request):
+    try:
+        User.objects.get(email=request.query_params["email"])
+        return Response({"New_User": "false"})
+    except:
+        return Response({"New_User": "true"})
 
 
 # Class based view to Get User Details using Token Authentication

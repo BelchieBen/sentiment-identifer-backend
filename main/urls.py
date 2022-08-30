@@ -3,5 +3,5 @@ from . views import GetSentiment, SearchForTweets
 
 urlpatterns = [
     path('analyse', GetSentiment),
-    path('tweet/search', SearchForTweets)
+    path('tweet/search', SearchForTweets),
 ]
