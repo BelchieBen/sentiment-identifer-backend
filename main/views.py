@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -7,6 +8,11 @@ from tweepy import OAuthHandler
 from tweepy import API
 import json
 from . util import *
+import pandas as pd
+import boto3
+from django.conf import settings
+from .models import UserDataset
+from users.models import User
 
 #Imports for sentiment analysis
 from textblob import TextBlob
@@ -14,9 +20,11 @@ from textblob import TextBlob
 @api_view(['POST'])
 def GetSentiment(request):
     #try:
-        data_to_analyse = request.data
+        print(os.environ.get('AWS_ACCESS_KEY'))
+        data_to_analyse = request.data["data"]["tweets"]
+        filename = request.data["data"]["keyword"]+".csv"
 
-        for i in data_to_analyse["data"]:
+        for i in data_to_analyse:
             textToAnalyse = i["text"]
             sentiment = round(TextBlob(textToAnalyse).sentiment.polarity, 1)
             subjectivity = round(TextBlob(textToAnalyse).subjectivity, 1)
@@ -24,6 +32,13 @@ def GetSentiment(request):
             i["subjectivity"] = subjectivity
             i['sentiment_label'] = categorizeSentiment(sentiment)
             i['subjectivity_label'] = categorizeSubjectivity(subjectivity)
+        tweet_df = pd.json_normalize(data_to_analyse)
+        s3 = boto3.resource('s3', aws_access_key_id=settings.AWS_ACCESS_KEY, aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+        bucket = s3.Bucket('sentiment-identifier')
+        bucket.put_object(Key=filename, Body=tweet_df.to_csv(index=False))
+        currentUser = User.objects.get(email=request.data["data"]["email"])
+        UserDataset.objects.create(datasetFile=filename, user=currentUser)
+        
         return Response(data_to_analyse)
     # except:
     #     return Response(status=status.HTTP_400_BAD_REQUEST)
