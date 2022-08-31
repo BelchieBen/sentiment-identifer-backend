@@ -13,14 +13,17 @@ import boto3
 from django.conf import settings
 from .models import UserDataset
 from users.models import User
+from django.core import serializers
+import csv
+import codecs
 
 #Imports for sentiment analysis
 from textblob import TextBlob
+import io
 
 @api_view(['POST'])
 def GetSentiment(request):
     #try:
-        print(os.environ.get('AWS_ACCESS_KEY'))
         data_to_analyse = request.data["data"]["tweets"]
         filename = request.data["data"]["keyword"]+".csv"
 
@@ -69,6 +72,26 @@ def SearchForTweets(request):
         return Response(tweet_data)
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def FindUserRecentCharts(request):
+    usr = User.objects.get(email=request.query_params["user"])
+    lastTwoDatasets = UserDataset.objects.filter(user = usr).order_by('-updated_at')[:2]
+    files = []
+    s3 = boto3.resource('s3', aws_access_key_id=settings.AWS_ACCESS_KEY, aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+    bucket = s3.Bucket('sentiment-identifier')
+    client = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY, aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY, region_name='us-west-2')
+    
+    # recentDatasetData = {"0":[], "1":[]}
+    recentDatasetData = {}
+    for index,file in enumerate(lastTwoDatasets):
+        recentDatasetData[file.datasetFile.split('.')[0]] = []
+        files.append(file.datasetFile)
+        s3response = client.get_object(Bucket="sentiment-identifier", Key=file.datasetFile)
+        # Converting the s3 stream to csv format
+        for row in csv.DictReader(codecs.getreader("utf-8")(s3response["Body"])):
+            recentDatasetData[file.datasetFile.split('.')[0]].append(row)
+    return Response(recentDatasetData)
 
 
 
